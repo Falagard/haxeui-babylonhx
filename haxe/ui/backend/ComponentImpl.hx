@@ -4,6 +4,7 @@ import haxe.ui.core.Component;
 import haxe.ui.core.TextDisplay;
 import haxe.ui.events.UIEvent;
 import haxe.ui.styles.Style;
+import haxe.ui.backend.babylonhx.StyleHelper;
 
 class ComponentImpl extends ComponentBase {
     public function new() {
@@ -31,6 +32,13 @@ class ComponentImpl extends ComponentBase {
         if (width == null || height == null || width < 0 || height < 0) {
             return;
         }
+
+        width *= Toolkit.scaleX;
+        height *= Toolkit.scaleY;
+        
+        //if (this.styleable) {
+            StyleHelper.apply(this, style, width, height);
+        //}
         
         trace('${pad(this.id)}: size -> ${width}x${height}');
     }
