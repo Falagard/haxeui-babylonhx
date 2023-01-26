@@ -440,9 +440,16 @@ class Graphics extends UIComponent {
 		dx -= tile.x;
 		dy -= tile.y;
 
+		var pixWidth = 1 / 256;
+		var pixHeight = 1 / 256;
+		
 		var tex = tile.getTexture();
-		var pixWidth = 1 / tex.width;
-		var pixHeight = 1 / tex.height;
+
+		if(tex != null) {
+			pixWidth = 1 / tex.width;
+			pixHeight =  1 / tex.height;
+		}
+
 		ma = pixWidth / scaleX;
 		mb = 0;
 		mc = 0;
