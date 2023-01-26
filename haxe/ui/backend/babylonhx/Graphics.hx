@@ -1,5 +1,11 @@
 package haxe.ui.backend.babylonhx;
 
+import com.babylonhx.utils.typedarray.UInt32Array;
+import com.babylonhx.utils.typedarray.Float32Array;
+import com.babylonhx.mesh.VertexBuffer;
+import com.babylonhx.mesh.Buffer;
+import com.babylonhx.mesh.WebGLBuffer;
+import com.babylonhx.ui.UIComponent;
 
 @:dox(hide)
 class GPoint {
@@ -24,6 +30,11 @@ class GPoint {
 }
 
 private class GraphicsContent {
+
+	//private var _vertexData:Float32Array; //the pure float array including all vertex data, positions, color, etc.
+	//private var _vertexBuffer:Buffer; //the buffer that rests over top of the vertex data
+	//private var _vertexBuffers:Map<String, VertexBuffer> = new Map(); //a map of kind strings to vertex buffers
+	//private var _indexBuffer:WebGLBuffer; //index buffer
 
 	//var tmp : hxd.FloatBuffer;
 	//var index : hxd.IndexBuffer;
@@ -162,7 +173,7 @@ private class GraphicsContent {
 	ideally limiting to only one texture.
 	* Due to how Graphics operate, removing them from the active `h2d.Scene` will cause a loss of all data.
 **/
-class Graphics {
+class Graphics extends UIComponent {
 
 	var content : GraphicsContent;
 	var tmpPoints : Array<GPoint>;
@@ -208,9 +219,11 @@ class Graphics {
 	public var bevel = 0.25; //0 = not beveled, 1 = always beveled
 
     /**
+	 * 
 		Create a new Graphics instance.
 	**/
 	public function new() {
+		super();
 		content = new GraphicsContent();
 		tile = Tile.fromColor(0xFFFFFF);
 		clear();

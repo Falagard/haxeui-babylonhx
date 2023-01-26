@@ -2,6 +2,7 @@ package haxe.ui.backend;
 
 import haxe.ui.core.Component;
 import haxe.ui.core.TextDisplay;
+import haxe.ui.core.Screen;
 import haxe.ui.events.UIEvent;
 import haxe.ui.styles.Style;
 import haxe.ui.backend.babylonhx.StyleHelper;
@@ -70,6 +71,27 @@ class ComponentImpl extends ComponentBase {
         trace('${pad(this.id)}: remove component at index -> ${index}');
         return null;
     }
+
+    private var _deallocate:Bool = false;
+    private var deallocate(null, set):Bool;
+    private function set_deallocate(value:Bool) {
+        _deallocate = value;
+        for (c in this.childComponents) {
+            c.deallocate = value;
+        }
+        return value;
+    }
+    private var _disposed:Bool = false;
+    private function dispose() {
+        if (_disposed == true) {
+            return;
+        }
+        deallocate = true;
+        removeChildren();
+        //_mask = null; //CL todo - implement mask
+        remove();
+    }
+
     
     //***********************************************************************************************************
     // Style
@@ -124,4 +146,30 @@ class ComponentImpl extends ComponentBase {
     public static inline function pad(s:String, len:Int = 20):String {
         return StringTools.rpad(s, " ", len);
     }
+
+    private  override function onAdd() {
+        super.onAdd();
+        if (this.parentComponent == null && Screen.instance.rootComponents.indexOf(cast this) == -1) {
+            Screen.instance.addComponent(cast this);
+        }
+        cast(this, Component).ready();
+    }
+    
+    private override function onRemove() {
+        if (_deallocate == true) {
+            _disposed = true;
+            super.onRemove();
+        }
+        if (this.parentComponent == null && Screen.instance.rootComponents.indexOf(cast this) != -1) {
+            Screen.instance.removeComponent(cast this, _deallocate);
+        }
+    }
+
+    @:access(haxe.ui.core.Component)
+    private function inBounds(x:Float, y:Float):Bool {
+        //just return true for now
+        return true;
+    }
+    
+    
 }
