@@ -6,6 +6,8 @@ import haxe.ui.core.Screen;
 import haxe.ui.events.UIEvent;
 import haxe.ui.styles.Style;
 import haxe.ui.backend.babylonhx.StyleHelper;
+import com.babylonhx.engine.Engine;
+import haxe.ui.validation.InvalidationFlags;
 
 class ComponentImpl extends ComponentBase {
     public function new() {
@@ -25,6 +27,21 @@ class ComponentImpl extends ComponentBase {
         if (left == null && top == null) {
             return;
         }
+
+        left = Std.int(left);
+        top = Std.int(top);
+        
+        //if (_mask == null) { //todo - implement mask
+            if (this.x != left) {
+                this.x = left * Toolkit.scaleX;
+            } 
+            if (this.y != top) {
+                this.y = top * Toolkit.scaleY;
+            } 
+        //} else {
+        //    if (_mask.x != left) _mask.x = left * Toolkit.scaleX;
+        //    if (_mask.y != top)  _mask.y = top * Toolkit.scaleY;
+        //}
         
         trace('${pad(this.id)}: move -> ${left}x${top}');
     }
@@ -49,25 +66,44 @@ class ComponentImpl extends ComponentBase {
     //***********************************************************************************************************
     
     private override function handleSetComponentIndex(child:Component, index:Int) {
+        addChildAt(child, index);
         trace('${pad(this.id)}: set component index -> ${child.id}, ${index}');
     }
 
     private override function handleAddComponent(child:Component):Component {
+        addChild(child);
         trace('${pad(this.id)}: add component -> ${child.id}');
         return child;
     }
 
     private override function handleAddComponentAt(child:Component, index:Int):Component {
+        addChildAt(child, index);
         trace('${pad(this.id)}: add component at index -> ${child.id}, ${index}');
         return child;
     }
 
     private override function handleRemoveComponent(child:Component, dispose:Bool = true):Component {
+        removeChild(child);
+        
+        if (dispose == true) {
+            child.dispose();
+        }
+
         trace('${pad(this.id)}: remove component -> ${child.id}');
         return child;
     }
 
     private override function handleRemoveComponentAt(index:Int, dispose:Bool = true):Component {
+
+        var child = _children[index];
+        if (child != null) {
+            removeChild(child);
+
+            if (dispose == true) {
+                child.dispose();
+            }
+        }
+
         trace('${pad(this.id)}: remove component at index -> ${index}');
         return null;
     }
@@ -171,5 +207,21 @@ class ComponentImpl extends ComponentBase {
         return true;
     }
     
-    
+    public override function sync(engine: Engine) {
+        var changed = posChanged;
+        // if .x/.y property is access directly, we still want to honour it, so we will set haxeui's
+        // .left/.top to keep them on sync, but only if the components position isnt already invalid
+        // (which would mean this has come from a haxeui validation cycle)
+        if (changed == true && isComponentInvalid(InvalidationFlags.POSITION) == false /* && _mask == null*/ ) { //CL todo - mask
+            if (this.x != this.left) {
+                this.left = this.x;
+            }
+            if (this.y != this.top) {
+                this.top = this.y;
+            }
+        }
+        super.sync(engine);
+        //clearCaches(); CL todo - screenX/Y caching
+    }
+
 }
